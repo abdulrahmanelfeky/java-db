@@ -18,7 +18,7 @@ import javax.persistence.criteria.Root;
 
 /**
  *
- * @author Mohammed
+ * @author abdulrahman elfeky
  */
 public class StudentJpaController implements Serializable {
 

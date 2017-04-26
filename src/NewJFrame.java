@@ -1,10 +1,19 @@
 
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javaapplication9.Student;
 import javaapplication9.StudentJpaController;
+import javaapplication9.exceptions.NonexistentEntityException;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableModel;
 import org.eclipse.persistence.jpa.rs.exceptions.PersistenceExceptionMapper;
 
 /*
@@ -15,15 +24,56 @@ import org.eclipse.persistence.jpa.rs.exceptions.PersistenceExceptionMapper;
 
 /**
  *
- * @author Mohammed
+ * @author abdulrahman elfeky
  */
 public class NewJFrame extends javax.swing.JFrame {
 
     /**
+     * 
      * Creates new form NewJFrame
      */
+    
+    int Rowindex=-1;
+             EntityManagerFactory em=Persistence.createEntityManagerFactory("JavaApplication9PU");
+         StudentJpaController sj=new StudentJpaController(em);
+
     public NewJFrame() {
         initComponents();
+       
+      List<Student>  s=sj.findStudentEntities();
+     
+      DefaultTableModel m=(DefaultTableModel) jTable1.getModel();
+
+        for (int i = 0; i <s.size() ; i++) {
+            String [] a={s.get(i).getId().toString(),s.get(i).getFname(),s.get(i).getLname(),s.get(i).getPhone(),s.get(i).getEmail()};
+       m.addRow(a);
+        }
+        
+        
+        jTable1.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
+        public void valueChanged(ListSelectionEvent event) {
+            // do some actions here, for example
+            // print first column value from selected row
+            
+          //  System.out.println(jTable1.getValueAt(jTable1.getSelectedRow(), 0).toString());
+                     int v=jTable1.getSelectedRow();
+
+          if(v!=-1){
+                            Rowindex=v;
+
+            txtid.enable(false);
+            txtid.setText(jTable1.getValueAt(jTable1.getSelectedRow(), 0).toString());
+                        txtfname.setText(jTable1.getValueAt(jTable1.getSelectedRow(), 1).toString());
+                        txtlname.setText(jTable1.getValueAt(jTable1.getSelectedRow(),2).toString());
+                        txtphone.setText(jTable1.getValueAt(jTable1.getSelectedRow(), 3).toString());
+                        txtmail.setText(jTable1.getValueAt(jTable1.getSelectedRow(), 4).toString());
+
+         jTable1.getSelectionModel().clearSelection();
+            }
+
+        }
+    });
+        
     }
 
     /**
@@ -46,6 +96,12 @@ public class NewJFrame extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
+        btnupdate = new javax.swing.JButton();
+        btnclear = new javax.swing.JButton();
+        jLabel6 = new javax.swing.JLabel();
+        btndelet1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -68,6 +124,12 @@ public class NewJFrame extends javax.swing.JFrame {
             }
         });
 
+        txtmail.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                txtmailKeyTyped(evt);
+            }
+        });
+
         jLabel1.setText("ID");
 
         jLabel2.setText("First Name");
@@ -78,6 +140,40 @@ public class NewJFrame extends javax.swing.JFrame {
 
         jLabel5.setText("Phone");
 
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "id", "firstname", "lastname", "phone", "email"
+            }
+        ));
+        jTable1.setColumnSelectionAllowed(true);
+        jTable1.setEditingColumn(1);
+        jScrollPane1.setViewportView(jTable1);
+        jTable1.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+
+        btnupdate.setText("update");
+        btnupdate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnupdateActionPerformed(evt);
+            }
+        });
+
+        btnclear.setText("delete");
+        btnclear.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnclearActionPerformed(evt);
+            }
+        });
+
+        btndelet1.setText("clear");
+        btndelet1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btndelet1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -85,8 +181,12 @@ public class NewJFrame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(162, 162, 162)
-                        .addComponent(btninsert))
+                        .addGap(63, 63, 63)
+                        .addComponent(btnclear)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btninsert)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnupdate))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(40, 40, 40)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -96,13 +196,22 @@ public class NewJFrame extends javax.swing.JFrame {
                             .addComponent(jLabel1)
                             .addComponent(jLabel4))
                         .addGap(64, 64, 64)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(txtfname)
-                            .addComponent(txtlname)
-                            .addComponent(txtphone)
-                            .addComponent(txtmail, javax.swing.GroupLayout.DEFAULT_SIZE, 189, Short.MAX_VALUE)
-                            .addComponent(txtid))))
-                .addContainerGap(50, Short.MAX_VALUE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(6, 6, 6)
+                                .addComponent(jLabel6))
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(txtfname)
+                                .addComponent(txtlname)
+                                .addComponent(txtphone)
+                                .addComponent(txtmail, javax.swing.GroupLayout.DEFAULT_SIZE, 189, Short.MAX_VALUE)
+                                .addComponent(txtid))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(btndelet1)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 439, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(21, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -112,24 +221,34 @@ public class NewJFrame extends javax.swing.JFrame {
                     .addComponent(txtid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtfname, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtlname, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel3))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtphone, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel5))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtmail, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel4))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 28, Short.MAX_VALUE)
-                .addComponent(btninsert)
-                .addGap(56, 56, 56))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(txtfname, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel2))
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(txtlname, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel3))
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(txtphone, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel5))
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(txtmail, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel4))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel6)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(btninsert)
+                            .addComponent(btnupdate)
+                            .addComponent(btnclear))
+                        .addGap(21, 21, 21)
+                        .addComponent(btndelet1))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         txtid.getAccessibleContext().setAccessibleName("");
@@ -137,34 +256,69 @@ public class NewJFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    @SuppressWarnings("empty-statement")
     private void btninsertActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btninsertActionPerformed
 
         Student sd=new Student();
         
         String txtId=txtid.getText();
-        String txtfname=this.txtfname.getText();
-        String txtlname=this.txtlname.getText();
-        String txtphone=this.txtphone.getText();
+        String txtfname1=txtfname.getText();
+        String txtlname1=txtlname.getText();
+        String txtphone1=txtphone.getText();
         String txtemail=txtmail.getText();
-      
-        
+       
+        if(validate(txtemail)){
         sd.setId(Integer.parseInt(txtId));
-        sd.setFname(txtfname);
-        sd.setLname(txtlname);
-        sd.setPhone(txtphone);
+        sd.setFname(txtfname1);
+        sd.setLname(txtlname1);
+        sd.setPhone(txtphone1);
         sd.setEmail(txtemail);
         
-         EntityManagerFactory em=Persistence.createEntityManagerFactory("JavaApplication9PU");
+         try{
+                 Integer.parseInt(txtphone1);
+
          
-         StudentJpaController sj=new StudentJpaController(em);
          
         try {
             sj.create(sd);
+      List<Student>  s=sj.findStudentEntities();
+     
+      DefaultTableModel m=(DefaultTableModel) jTable1.getModel();
+
+        for (int i = s.size() -1; i <s.size() ; i++) {
+            String [] a={s.get(i).getId().toString(),s.get(i).getFname(),s.get(i).getLname(),s.get(i).getPhone(),s.get(i).getEmail()};
+       m.addRow(a);
+        }
+        
             // TODO add your handling code here:
         } catch (Exception ex) {
             Logger.getLogger(NewJFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    JOptionPane.showMessageDialog(null,"id already exist");
+
         }
+         }
+         catch (Exception ex){
+                    JOptionPane.showMessageDialog(null,"invalid phone");
+
+                 }
+         
+    
+        }else
+        {
+        JOptionPane.showMessageDialog(null,"invalid email");
+
+        }
+        
+    //  jTable1.updateUI();
+      //invalidate();
     }//GEN-LAST:event_btninsertActionPerformed
+    public static final Pattern VALID_EMAIL_ADDRESS_REGEX = 
+    Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
+
+    public static boolean validate(String emailStr) {
+        Matcher matcher = VALID_EMAIL_ADDRESS_REGEX .matcher(emailStr);
+        return matcher.find();
+    }
 
     private void txtphoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtphoneActionPerformed
         // TODO add your handling code here:
@@ -173,6 +327,148 @@ public class NewJFrame extends javax.swing.JFrame {
     private void txtfnameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtfnameActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtfnameActionPerformed
+
+    private void btnupdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnupdateActionPerformed
+        // TODO add your handling code here:
+       if(Rowindex!=-1){
+        Student sd=new Student();
+        
+        String txtId=txtid.getText();
+        String txtfname1=txtfname.getText();
+        String txtlname1=txtlname.getText();
+        String txtphone1=txtphone.getText();
+        String txtemail=txtmail.getText();
+        if(validate(txtemail)){
+        sd.setId(Integer.parseInt(txtId));
+        sd.setFname(txtfname1);
+        sd.setLname(txtlname1);
+        sd.setPhone(txtphone1);
+        sd.setEmail(txtemail);
+        
+         try{
+                 Integer.parseInt(txtphone1);
+if(txtphone1.contains("."))
+                   JOptionPane.showMessageDialog(null,"invalid phone");
+
+else{
+         
+        try {
+            sj.edit(sd);
+      List<Student>  s=sj.findStudentEntities();
+     
+      DefaultTableModel m=(DefaultTableModel) jTable1.getModel();
+            String [] a={sd.getId().toString(),sd.getFname(),sd.getLname(),sd.getPhone(),sd.getEmail()};
+           
+            jTable1.setValueAt(sd.getId(), Rowindex, 0);
+            jTable1.setValueAt(sd.getFname(), Rowindex, 1);
+            jTable1.setValueAt(sd.getLname(), Rowindex, 2);
+            jTable1.setValueAt(sd.getPhone(), Rowindex, 3);
+            jTable1.setValueAt(sd.getEmail(), Rowindex, 4);
+
+            txtid.enable(true);
+            txtid.setText("");            txtfname.setText("");
+            txtlname.setText("");
+            txtphone.setText("");            txtmail.setText("");
+
+Rowindex=-1;
+jTable1.clearSelection();
+            
+                 //  m.insertRow(Rowindex,a );
+      
+//Remove rows one by one from the end of the tabl
+        
+            // TODO add your handling code here:
+        } catch (Exception ex) {
+            Logger.getLogger(NewJFrame.class.getName()).log(Level.SEVERE, null, ex);
+                   // JOptionPane.showMessageDialog(null,"id already exist");
+
+        }
+}
+         }
+         catch (Exception ex){
+                    JOptionPane.showMessageDialog(null,"invalid phone");
+
+                 }
+         
+    
+        }else
+        {
+        JOptionPane.showMessageDialog(null,"invalid email");
+
+        }
+        
+       }else
+       {
+               JOptionPane.showMessageDialog(null,"please select row");
+
+       }
+    }//GEN-LAST:event_btnupdateActionPerformed
+
+    private void btnclearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnclearActionPerformed
+        // TODO add your handling code here:
+        
+        if(Rowindex!=-1)
+        {
+           
+      Student sd=new Student();
+        
+        String txtId=txtid.getText();
+ 
+        sd.setId(Integer.parseInt(txtId));
+   
+         
+            try {
+                sj.destroy(sd.getId());
+         DefaultTableModel m=  ((DefaultTableModel) jTable1.getModel());
+         
+  
+                  //        JOptionPane.showMessageDialog(null,    m.getRowCount());
+    //jTable1.getSelectionModel().clearSelection();
+         m.removeRow(Rowindex);
+
+         jTable1.setModel(m);
+    jTable1.addNotify();
+
+      txtid.enable(true);
+            txtid.setText("");            txtfname.setText("");
+            txtlname.setText("");
+            txtphone.setText("");            txtmail.setText("");
+
+Rowindex=-1;
+            } catch (NonexistentEntityException ex) {
+                Logger.getLogger(NewJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        
+        
+         
+         
+         }
+        
+    }//GEN-LAST:event_btnclearActionPerformed
+
+    private void txtmailKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtmailKeyTyped
+        // TODO add your handling code here:
+        if(validate(txtmail.getText()))
+        {
+                    jLabel6.setText("");
+
+        }else
+        {
+        jLabel6.setText("invalid email");
+        }
+    }//GEN-LAST:event_txtmailKeyTyped
+
+    private void btndelet1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btndelet1ActionPerformed
+        // TODO add your handling code here:
+        
+        
+      txtid.enable(true);
+            txtid.setText("");            txtfname.setText("");
+            txtlname.setText("");
+            txtphone.setText("");            txtmail.setText("");
+
+Rowindex=-1;
+    }//GEN-LAST:event_btndelet1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -204,12 +500,18 @@ public class NewJFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnclear;
+    private javax.swing.JButton btndelet1;
     private javax.swing.JButton btninsert;
+    private javax.swing.JButton btnupdate;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable jTable1;
     private javax.swing.JTextField txtfname;
     private javax.swing.JTextField txtid;
     private javax.swing.JTextField txtlname;
